@@ -39,6 +39,7 @@
                     <div class="layui-input-inline">
                         <input type="text" id="verifycode" class="layui-input">
                     </div>
+                    <img src="{:captcha_src()}" id="img" onclick="reloadImg()">
                 </div>
                 <div class="layui-form-item">
                     <div class="layui-input-block">
@@ -52,15 +53,61 @@
     </div>
 
     <script type="text/javascript">
+
+        layui.use(['layer'],function(){
+            $ = layui.jquery;
+            layer = layui.layer;
+
+            // 用户名控件获取焦点
+            $('#username').focus();
+            // 回车登录
+            $('input').keydown(function(e){
+                if(e.keyCode == 13){
+                    dologin();
+                }
+            });
+        });
+
+
+        function reloadImg(){
+            $('#img').attr('src','{:captcha_src()}?rand='+Math.random());
+        }
+
+
         function dologin(){
-            layer.alert('aaa';{icon:2})
-            return;
+
             var username = $.trim($('#username').val());
             var pwd = $.trim($('#password').val());
+            var verifycode = $.trim($('#verifycode').val());
+
             if(username == ''){
                 layer.alert('请输入用户名',{icon:2})
                 return;
             }
+
+            if(pwd == ''){
+                layer.alert('请输入密码',{icon:2});
+                return;
+            }
+
+            if(verifycode == ''){
+                layer.alert('请输入验证码',{icon:2});
+                return;
+            }
+
+            $.post('/index.php/admin/Login/dologin',{'username':username,'pwd':pwd,'verifycode':verifycode},function(res){
+                if(res.code>0){
+                    reloadImg();
+                    layer.alert(res.msg,{icon:2});
+                }else{
+                    layer.msg(res.msg);
+                    setTimeout(function(){
+                        window.location.href='/index.php/admin/Home/index '
+                    },1000);
+                }
+            },'json');
+
+
         }
     </script>
 </body>
